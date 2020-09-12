@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+
+// * components: 
+import PrivateRoute from '../src/components/PrivateRoute';
+import BubblePage from '../src/components/BubblePage';
+
 
 import Login from "./components/Login";
 import "./styles.scss";
@@ -8,11 +13,14 @@ function App() {
   return (
     <Router>
       <div className="App">
+        <Switch>
         <Route exact path="/" component={Login} />
         {/* 
           Build a PrivateRoute component that will 
           display BubblePage when you're authenticated 
         */}
+        <PrivateRoute exact path='/protected' component={BubblePage} />
+        </Switch>
       </div>
     </Router>
   );
