@@ -1,59 +1,48 @@
-import React, { useState } from "react";
-import axios from 'axios'
+import React, {useState} from "react";
+import {Redirect} from "react-router-dom";
+import axios from "axios";
 
-const Login = () => {
+const Login = props => {
   // make a post request to retrieve a token from the api
   // when you have handled the token, navigate to the BubblePage route
+  const [formData, setFormData] = useState({
+    username: "",
+    password: ""
+  });
 
-  const [userInput, setUserInput] = useState({})
+  const onChange = e =>{
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  }
 
-  const handleChange = (event) => {
-    event.preventDefault()
-    setUserInput({
-      ...userInput,
-      [event.target.name]:  event.target.value
+  const onSubmit = e =>{
+    e.preventDefault();
+    axios.post("http://localhost:5000/api/login", formData).then(({data})=>{
+      localStorage.setItem("token", data.payload);
+      props.setToken(data.payload)
+    }).catch(err=>{
+      console.log(err);
     })
-    console.log('user input:', userInput);
   }
-
-
-  const login = (event) => {
-    event.preventDefault()
-    axios.post("http://localhost:5000/api/login", userInput)
-		.then((response) => { 
-			console.log(response)
-			localStorage.setItem("token", response.data.payload)
-			window.location.assign('/protected');
-		})
-		.catch((error) => {
-			console.log(error)
-		})
-  }
-
 
   return (
     <>
+      {props.token && 
+        <Redirect to="/bubble-page"/>
+      }
       <h1>Welcome to the Bubble App!</h1>
-      <label htmlFor='username'>Username:</label>
-      <input
-        className='login-form-container__input'
-        // value={}
-        onChange={handleChange}
-        name='username'
-        placeholder="example@123.com"
-      ></input>
-      <label htmlFor='password'>Password:</label>
-      <input
-        className='login-form-container__input'
-        // value={}
-        onChange={handleChange}
-        name='password'
-        placeholder="**********"
-      ></input>
-      <button 
-      className='login-form-container__button' 
-      onClick={login}
-      >Login</button>
+      <form onSubmit={onSubmit}>
+        <h2>Login</h2>
+        <label htmlFor="username">
+          Username: <input onChange={onChange} type="text" name="username"/>
+        </label>
+        <label htmlFor="password">
+          Password: <input onChange={onChange} type="password" name="password"/>
+        </label>
+        <button>Submit</button>
+      </form>
     </>
   );
 };

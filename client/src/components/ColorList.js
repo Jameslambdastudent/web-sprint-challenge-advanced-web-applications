@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { axiosWAuth } from '../utils/axiosWAuth';
+import axiosWithAuth from '../utils/axiosWAuth'
 
 const initialColor = {
   color: "",
@@ -7,49 +7,70 @@ const initialColor = {
 };
 
 const ColorList = ({ colors, updateColors }) => {
-  console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  
+
+  const updateNewColor = e =>{
+    if(e.target.name === "color"){
+      setNewColor({
+        ...newColor,
+        color: e.target.value
+      })
+    }else{
+      setNewColor({
+        ...newColor,
+        code: {
+          hex: e.target.value
+        }
+      });
+    }
+  }
+
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
-    console.log(colorToEdit)
   };
 
   const saveEdit = e => {
     e.preventDefault();
-    axiosWAuth()
-    .put(`/colors/${colorToEdit.id}`, colorToEdit)
-      .then((response) => {
-        console.log('mod response:', response)
-        setEditing(false)
-        window.location.reload(false)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
+    // Make a put request to save your updated color
+    // think about where will you get the id from...
+    // where is is saved right now?
+    axiosWithAuth.put(`http://localhost:5000/api/colors/${colorToEdit.id}`, colorToEdit).then(({data})=>{
+      updateColors(colors.map(color=>{
+          if(color.id === data.id){
+            return data;
+          }
+          return color;
+      }));
+    }).catch(err=>{
+      console.log(err);
+    })
   };
 
   const deleteColor = color => {
     // make a delete request to delete this color
-    axiosWAuth()
-    .delete(`/colors/${color.id}`)
-      .then((response) => {
-        console.log(response)
-        window.location.reload(false)
-      })
-      .catch((error) => { 
-        console.log(error)
-      })
+    axiosWithAuth.delete(`http://localhost:5000/api/colors/${color.id}`).then(({data})=>{
+      updateColors(
+        colors.filter(item=> item.id !== color.id)
+      );
+    }).catch(err=>{
+      console(err);
+    })
   };
+
+  const hanndleSubmit = e => {
+    e.preventDefault();
+  }
 
   return (
     <div className="colors-wrap">
       <p>colors</p>
       <ul>
         {colors.map(color => (
-          <li key={color.color} onClick={() => editColor(color)}>
+          <li data-testid="color" key={color.color} onClick={() => editColor(color)}>
             <span>
               <span className="delete" onClick={e => {
                     e.stopPropagation();
@@ -97,11 +118,9 @@ const ColorList = ({ colors, updateColors }) => {
           </div>
         </form>
       )}
+      
       <div className="spacer" />
-      
-      
-
-
+      {/* stretch - build another form here to add a color */}
     </div>
   );
 };
